@@ -1,0 +1,71 @@
+<!-- Load TensorFlow.js. This is required to use MobileNet. -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.7.0"> </script>
+<script src="static/imagenet.js"> </script>
+<!-- Replace this with your image. Make sure CORS settings allow reading the image! -->
+<!--<img id="img" src="static/mushroom.png">-->
+<!--<img id="img" src="static/cat.jpg">-->
+<!--<img id="img" src="static/cat2.jpg">-->
+<!--<img id="img" src="static/castle.jpg">-->
+<img id="img" src="static/redwine.jpg">
+<!-- Place your code in the script tag below. You can also use an external .js file -->
+<script>
+  // Notice there is no 'import' statement. 'mobilenet' and 'tf' is
+  // available on the index-page because of the script tag above.
+
+  //const MOBILENET_MODEL_PATH = 'https://www.gstaticcnapps.cn/tfhub-tfjs-modules/google/imagenet/mobilenet_v1_100_224/classification/1/model.json';
+
+  MOBILENET_MODEL_PATH = 'static/model.json'
+  //test_path = 'https://www.gstaticcnapps.cn/tfjs-models/savedmodel/posenet/mobilenet/float/050/model-stride16.json';
+
+  let mobilenet;
+  const mobilenetDemo = async () => {
+      const mobilenet = await tf.loadGraphModel(MOBILENET_MODEL_PATH);
+      const imgElement = document.getElementById('img');
+      const input = tf.browser.fromPixels(imgElement).toFloat();
+
+      //input.print(verbose=true);
+
+      const offset = tf.scalar(127.5);
+      // Normalize the image from [0, 255] to [-1, 1].
+      const normalized = input.sub(offset).div(offset);
+
+      //normalized.print(verbose=true);
+
+      //resize image to 224,224 and reshape to 1,224,224,3
+      //input2 = tf.image.resizeBilinear(normalized, [224,224]).reshape([1, 224, 224, 3])
+      input2 = tf.image.resizeNearestNeighbor(normalized, [224,224]);
+      //input2.print(verbose=true);
+
+      input2 = input2.reshape([1, 224, 224, 3]);
+      //input2.print(verbose=true);
+
+      result = mobilenet.predict(input2);
+      //result.print(verbose=true); //size: batchsize * 1001
+
+      after_softmax = tf.softmax(result,dim=1);
+      //after_softmax.print(verbose=true);
+
+      <!--//find the top 5-->
+      <!--//{topk_values, topk_indices}=tf.topk(after_softmax,k=5,sorted=true);-->
+      <!--const {topkValues,topkIndices} = tf.topk(result);-->
+      <!--topkValues.print(verbose=true);-->
+
+
+      // Find the max value
+      index = tf.argMax(after_softmax,index=1);
+      //index.print(verbose=true);
+
+      const values = await index.data();
+      console.log(values);
+      console.log("The image is: "+IMAGENET_CLASSES[values-1]);
+
+  }
+  //waiting the image to be loaded
+  while(!document.getElementById('img').complete)
+  {
+    console.log("Waiting");
+  }
+
+  mobilenetDemo();
+
+</script>
