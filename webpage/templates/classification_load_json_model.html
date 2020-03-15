@@ -45,20 +45,27 @@
       after_softmax = tf.softmax(result,dim=1);
       //after_softmax.print(verbose=true);
 
-      <!--//find the top 5-->
-      <!--//{topk_values, topk_indices}=tf.topk(after_softmax,k=5,sorted=true);-->
-      <!--const {topkValues,topkIndices} = tf.topk(result);-->
-      <!--topkValues.print(verbose=true);-->
 
-
-      // Find the max value
+      // Find the Top1 value
       index = tf.argMax(after_softmax,index=1);
-      //index.print(verbose=true);
-
       const values = await index.data();
+      console.log("Top1 values: ");
       console.log(values);
       console.log("The image is: "+IMAGENET_CLASSES[values-1]);
 
+      //find the top 5
+      const kNum = 5
+      topkValues = tf.topk(after_softmax, k=kNum, sorted=true).values;
+      topkIndices = tf.topk(after_softmax, k=kNum, sorted=true).indices;
+
+      topkValues = await topkValues.data();
+      topkIndices = await topkIndices.data();
+      printLog = "Top5 values:{"
+      for (i = 0; i < kNum; i++) {
+        printLog += i+":"+"\""+IMAGENET_CLASSES[topkIndices[i]-1]+"\""+", ";
+      }
+      printLog += "}";
+      console.log(printLog);
   }
   //waiting the image to be loaded
   while(!document.getElementById('img').complete)

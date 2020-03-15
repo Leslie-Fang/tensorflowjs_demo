@@ -31,20 +31,21 @@ https://github.com/tensorflow/tfjs/issues/2338
 
 
 ### 示例代码
-官网：https://tensorflow.google.cn/js
+* 官网：https://tensorflow.google.cn/js
 
-https://github.com/tensorflow/tfjs
-https://github.com/tensorflow/tfjs-models
-https://github.com/tensorflow/tfjs-examples
-https://github.com/tensorflow/tfjs-wechat
+* https://github.com/tensorflow/tfjs
+* https://github.com/tensorflow/tfjs-models
+* https://github.com/tensorflow/tfjs-examples
+* https://github.com/tensorflow/tfjs-wechat
 
-API查询:
-https://js.tensorflow.org/api/latest/#input
+* API查询: https://js.tensorflow.org/api/latest/#input
 
 ### 运行这个demo
+```
 建立python3虚拟环境
 pip install -r requirements.txt
 bash start.sh
 
 下载图片到static目录下面
 在html文件里面修改要inference的图片位置
+```
