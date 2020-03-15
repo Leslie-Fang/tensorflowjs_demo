@@ -45,3 +45,6 @@ https://js.tensorflow.org/api/latest/#input
 建立python3虚拟环境
 pip install -r requirements.txt
 bash start.sh
+
+下载图片到static目录下面
+在html文件里面修改要inference的图片位置
