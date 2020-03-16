@@ -49,3 +49,25 @@ bash start.sh
 下载图片到static目录下面
 在html文件里面修改要inference的图片位置
 ```
+
+### 预训练模型的转换
+#### Keras 模型
+```
+https://tensorflow.google.cn/js/tutorials/conversion/import_keras
+pip install tensorflowjs
+
+tensorflowjs_converter --input_format keras checkpoint-3.h5 . #在当前目录下创建model.json， 和几个权重文件
+```
+* Error
+```buildoutcfg
+Uncaught (in promise) TypeError: Cannot read property 'producer' of undefined
+从keras转换过来的模型，要用tf.loadLayersModel API 不是 tf.laodGraphModel API.
+https://github.com/tensorflow/tfjs/issues/1432
+
+```
+
+
+#### PB 模型
+```buildoutcfg
+https://tensorflow.google.cn/js/tutorials/conversion/import_saved_model
+```

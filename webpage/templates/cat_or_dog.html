@@ -1,0 +1,67 @@
+<!-- Load TensorFlow.js. This is required to use MobileNet. -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.7.0"> </script>
+
+<img id="img" src="static/dog_cat/190.jpg">
+<!-- Place your code in the script tag below. You can also use an external .js file -->
+<script>
+  // Notice there is no 'import' statement. 'mobilenet' and 'tf' is
+  // available on the index-page because of the script tag above.
+
+  RESNET50_MODEL_PATH = 'static/dog_cat/model.json'
+  //test_path = 'https://www.gstaticcnapps.cn/tfjs-models/savedmodel/posenet/mobilenet/float/050/model-stride16.json';
+
+  let resnet50;
+  const resnet50Demo = async () => {
+      const resnet50 = await tf.loadLayersModel(RESNET50_MODEL_PATH);
+      const imgElement = document.getElementById('img');
+      const input = tf.browser.fromPixels(imgElement).toFloat();
+
+      //input.print(verbose=true);
+
+      //resnet50 no need to Normalize
+      //const offset = tf.scalar(127.5);
+      //const normalized = input.sub(offset).div(offset);
+
+      //resize image to 224,224 and reshape to 1,224,224,3
+      //input2 = tf.image.resizeBilinear(normalized, [224,224]).reshape([1, 224, 224, 3])
+      input2 = tf.image.resizeNearestNeighbor(input, [224,224]);
+      //input2.print(verbose=true);
+
+      input2 = input2.reshape([1, 224, 224, 3]);
+      //input2.print(verbose=true);
+
+      result = resnet50.predict(input2);
+      result.print(verbose=true); //size: batchsize * 2
+
+      <!--after_softmax = tf.softmax(result,dim=1);-->
+      <!--after_softmax.print(verbose=true);-->
+
+      // Find the Top1 value
+      index = tf.argMax(result, index=1);
+      const values = await index.data();
+      console.log("Top1 values: " + values);
+      <!--console.log("The image is: "+IMAGENET_CLASSES[values-1]);-->
+
+      <!--//find the top 5-->
+      <!--const kNum = 5-->
+      <!--topkValues = tf.topk(after_softmax, k=kNum, sorted=true).values;-->
+      <!--topkIndices = tf.topk(after_softmax, k=kNum, sorted=true).indices;-->
+
+      <!--topkValues = await topkValues.data();-->
+      <!--topkIndices = await topkIndices.data();-->
+      <!--printLog = "Top5 values:{"-->
+      <!--for (i = 0; i < kNum; i++) {-->
+      <!--printLog += i+":"+"\""+IMAGENET_CLASSES[topkIndices[i]-1]+"\""+", ";-->
+      <!--}-->
+      <!--printLog += "}";-->
+      <!--console.log(printLog);-->
+  }
+  //waiting the image to be loaded
+  while(!document.getElementById('img').complete)
+  {
+    console.log("Waiting");
+  }
+
+  resnet50Demo();
+
+</script>
