@@ -42,10 +42,38 @@ https://github.com/tensorflow/tfjs/issues/2338
 
 ### 运行这个demo
 ```
-建立python3虚拟环境
-pip install -r requirements.txt
-bash start.sh
+预训练的TFJS model：
+https://github.com/tensorflow/tfjs-models/tree/master/coco-ssd
 
-下载图片到static目录下面
-在html文件里面修改要inference的图片位置
+对应的TF model
+https://github.com/tensorflow/models/tree/master/research/object_detection
 ```
+一共检测90类物体
+https://github.com/tensorflow/tfjs-models/blob/master/coco-ssd/src/classes.ts
+
+预测结果返回值的物理意义:
+```buildoutcfg
+[{
+  bbox: [x, y, width, height],
+  class: "person",
+  score: 0.8380282521247864
+}, {
+  bbox: [x, y, width, height],
+  class: "kite",
+  score: 0.74644153267145157
+}]
+```
+
+将model copy到本地，自己写代码(objection_detection_local.html)的时候参考这个:
+https://github.com/tensorflow/tfjs-models/blob/master/coco-ssd/src/index.ts
+
+### 数据集
+http://cocodataset.org/#home
+
+### Fine-tune
+预训练的模型下载:
+* https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md#coco-trained-models
+使用lite_mobilenet_v2，虽然精度稍低，但是速度快很多
+
+### fine-tune模型转换和转换之后的post-process 提高performance
+https://github.com/tensorflow/tfjs-models/tree/master/coco-ssd

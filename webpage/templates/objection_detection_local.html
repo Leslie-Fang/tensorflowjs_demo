@@ -1,0 +1,113 @@
+<!-- Load TensorFlow.js. This is required to use coco-ssd model. -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.7.0"> </script>
+<!-- Load the coco-ssd model. -->
+<!--<script src="static/coco-ssd"> </script>-->
+
+<!-- Replace this with your image. Make sure CORS settings allow reading the image! -->
+<img id="img" src="static/rideHorse.jpg"/>
+<script src="static/classes.js"> </script>
+
+<!-- Place your code in the script tag below. You can also use an external .js file -->
+<script>
+  // Notice there is no 'import' statement. 'cocoSsd' and 'tf' is
+  // available on the index-page because of the script tag above.
+
+  const img = document.getElementById('img');
+
+  MODEL_PATH = 'static/model.json'
+  let ssdmodel;
+  const ssdDemo = async () => {
+      // Load the model
+      const ssdmodel = await tf.loadGraphModel(MODEL_PATH);
+
+      // Preprocess the image
+      const imgElement = document.getElementById('img');
+      const input = tf.browser.fromPixels(imgElement).toFloat();
+      input2 = await input.expandDims(axis=0);
+
+      const height = input2.shape[1];
+      const width = input2.shape[2];
+
+      // Inference
+      result = await ssdmodel.executeAsync(input2);
+
+      // Result Postprocess
+      const scores = result[0].dataSync();
+      const boxes = result[1].dataSync();
+
+      numBoxes = result[0].shape[1];
+      numClasses = result[0].shape[2];
+
+      const maxes = [];
+      const classes = [];
+      for (let i = 0; i < numBoxes; i++) {
+        let max = Number.MIN_VALUE;
+        let index = -1;
+        for (let j = 0; j < numClasses; j++) {
+          if (scores[i * numClasses + j] > max) {
+            max = scores[i * numClasses + j];
+            index = j;
+          }
+        }
+        maxes[i] = max;
+        classes[i] = index;
+      }
+      maxScores = maxes;
+
+      maxNumBoxes = 20;
+      const prevBackend = tf.getBackend();
+      // run post process in cpu
+      tf.setBackend('cpu');
+      const indexTensor = tf.tidy(() => {
+        const boxes2 =
+            tf.tensor2d(boxes, [result[1].shape[1], result[1].shape[3]]);
+        return tf.image.nonMaxSuppression(
+            boxes2, maxScores, maxNumBoxes, 0.5, 0.5);
+      });
+
+      const indexes = indexTensor.dataSync();
+      indexTensor.dispose();
+
+      tf.setBackend(prevBackend);
+
+      <!--export interface DetectedObject {-->
+        <!--bbox: [number, number, number, number];  // [x, y, width, height]-->
+        <!--class: string;-->
+        <!--score: number;-->
+      <!--}-->
+
+      const count = indexes.length;
+      const objects = [];
+      for (let i = 0; i < count; i++) {
+        const bbox = [];
+        for (let j = 0; j < 4; j++) {
+          bbox[j] = boxes[indexes[i] * 4 + j];
+        }
+        const minY = bbox[0] * height;
+        const minX = bbox[1] * width;
+        const maxY = bbox[2] * height;
+        const maxX = bbox[3] * width;
+        bbox[0] = minX;
+        bbox[1] = minY;
+        bbox[2] = maxX - minX;
+        bbox[3] = maxY - minY;
+        objects.push({
+          bbox: bbox, //[x, y, width, height]
+          class: CLASSES[classes[indexes[i]] + 1].displayName,
+          score: maxScores[indexes[i]]
+        });
+      }
+      console.log('Predictions: ', objects);
+      console.log("Done with detection");
+      //return objects;
+  }
+  //waiting the image to be loaded
+  while(!document.getElementById('img').complete)
+  {
+    console.log("Waiting");
+  }
+
+
+  ssdDemo();
+
+</script>
