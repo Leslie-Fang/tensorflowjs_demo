@@ -29,7 +29,12 @@
       const width = input2.shape[2];
 
       // Inference
-      result = await ssdmodel.executeAsync(input2);
+      // model returns two tensors:
+      // 1. box classification score with shape of [1, 3(boxes_number), 90]
+      // 2. box location with shape of [1, 3(boxes_number), 1, 4]
+      // where 1 is the batchsize, 3 is the number of box detectors, 90 is the number of classes.
+      // and 4 is the four coordinates of the box.
+      result = await ssdmodel.executeAsync(input2); //
 
       // Result Postprocess
       const scores = result[0].dataSync();
@@ -38,6 +43,7 @@
       numBoxes = result[0].shape[1];
       numClasses = result[0].shape[2];
 
+      // Calculate each box's max score and the class index
       const maxes = [];
       const classes = [];
       for (let i = 0; i < numBoxes; i++) {
@@ -65,6 +71,7 @@
             boxes2, maxScores, maxNumBoxes, 0.5, 0.5);
       });
 
+      // indexes record all indexes in the boxes which we are interested
       const indexes = indexTensor.dataSync();
       indexTensor.dispose();
 
@@ -76,6 +83,7 @@
         <!--score: number;-->
       <!--}-->
 
+      // Build Detected Objects
       const count = indexes.length;
       const objects = [];
       for (let i = 0; i < count; i++) {
@@ -98,7 +106,6 @@
         });
       }
       console.log('Predictions: ', objects);
-      console.log("Done with detection");
       //return objects;
   }
   //waiting the image to be loaded
@@ -106,7 +113,6 @@
   {
     console.log("Waiting");
   }
-
 
   ssdDemo();
 
