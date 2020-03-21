@@ -4,8 +4,8 @@
 <!--<script src="static/coco-ssd"> </script>-->
 
 <!-- Replace this with your image. Make sure CORS settings allow reading the image! -->
-<img id="img" src="static/rideHorse.jpg"/>
-<script src="static/classes.js"> </script>
+<img id="img" src="static/self_trained_jayz/train_001.jpg"/>
+<script src="static/classes_jayz.js"> </script>
 
 <!-- Place your code in the script tag below. You can also use an external .js file -->
 <script>
@@ -14,7 +14,7 @@
 
   const img = document.getElementById('img');
 
-  MODEL_PATH = 'static/model.json'
+  MODEL_PATH = 'static/self_trained_jayz/model.json'
   let ssdmodel;
   const ssdDemo = async () => {
       // Load the model
@@ -38,65 +38,22 @@
 
       console.log(result);
 
-      // Result Postprocess
-      const scores = result[0].dataSync();
-      const boxes = result[1].dataSync();
-
-      numBoxes = result[0].shape[1];
-      numClasses = result[0].shape[2];
-
-      console.log(scores);
-      console.log(boxes);
-      console.log(numBoxes);
-      console.log(numClasses);
-
-      // Calculate each box's max score and the class index
-      const maxes = [];
-      const classes = [];
-      for (let i = 0; i < numBoxes; i++) {
-        let max = Number.MIN_VALUE;
-        let index = -1;
-        for (let j = 0; j < numClasses; j++) {
-          if (scores[i * numClasses + j] > max) {
-            max = scores[i * numClasses + j];
-            index = j;
-          }
-        }
-        maxes[i] = max;
-        classes[i] = index;
-      }
-      maxScores = maxes;
-
-      maxNumBoxes = 20;
-      const prevBackend = tf.getBackend();
-      // run post process in cpu
-      tf.setBackend('cpu');
-      const indexTensor = tf.tidy(() => {
-        const boxes2 =
-            tf.tensor2d(boxes, [result[1].shape[1], result[1].shape[3]]);
-        return tf.image.nonMaxSuppression(
-            boxes2, maxScores, maxNumBoxes, 0.5, 0.5);
-      });
-
-      // indexes record all indexes in the boxes which we are interested
-      const indexes = indexTensor.dataSync();
-      indexTensor.dispose();
-
-      tf.setBackend(prevBackend);
-
-      <!--export interface DetectedObject {-->
-        <!--bbox: [number, number, number, number];  // [x, y, width, height]-->
-        <!--class: string;-->
-        <!--score: number;-->
-      <!--}-->
+      num_detections = result[1].dataSync()
+      detected_boxes = result[3].dataSync()
+      detected_scores = result[4].dataSync()
+      detected_classes = result[5].dataSync()
+      console.log(num_detections);
+      console.log(detected_boxes);
+      console.log(detected_scores);
+      console.log(detected_classes);
 
       // Build Detected Objects
-      const count = indexes.length;
+      const count = num_detections;
       const objects = [];
       for (let i = 0; i < count; i++) {
         const bbox = [];
         for (let j = 0; j < 4; j++) {
-          bbox[j] = boxes[indexes[i] * 4 + j];
+          bbox[j] = detected_boxes[i * 4 + j];
         }
         const minY = bbox[0] * height;
         const minX = bbox[1] * width;
@@ -108,8 +65,8 @@
         bbox[3] = maxY - minY;
         objects.push({
           bbox: bbox, //[x, y, width, height]
-          class: CLASSES[classes[indexes[i]] + 1].displayName,
-          score: maxScores[indexes[i]]
+          class: CLASSES[detected_classes[i]].displayName,
+          score: detected_scores[i]
         });
       }
       console.log('Predictions: ', objects);

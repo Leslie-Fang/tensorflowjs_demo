@@ -10,3 +10,7 @@ def hello_world(name=None):
 @app.route('/local')
 def hello_world2(name=None):
     return render_template('objection_detection_local.html', name=name)
+
+@app.route('/localjay')
+def hello_world3(name=None):
+    return render_template('objection_detection_local_jayz.html', name=name)
