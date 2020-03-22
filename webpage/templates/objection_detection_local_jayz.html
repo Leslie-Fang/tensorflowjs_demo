@@ -37,6 +37,8 @@
       outputs_node = ['num_detections','detection_boxes','detection_scores','detection_classes']
       result = await ssdmodel.executeAsync(input2, outputs_node); //
 
+      console.log("hhhh");
+      console.log(result == undefined);
       console.log(result);
 
       num_detections = result[0].dataSync()
@@ -78,22 +80,36 @@
   var c = document.getElementById("myCanvas");
   var ctx = c.getContext("2d");
   var img = new Image();
-  img.src = "static/train_005.jpg";
+  img.src = "static/test_010.jpg";
   img.onload = function () {
       ctx.canvas.width = img.width;
       ctx.canvas.height = img.height;
       ctx.drawImage(img, 0, 0,  ctx.canvas.width, ctx.canvas.height);
       <!--bbox_objects =-->
       ssdDemo(img).then((bbox_objects)=> {
-          console.log("In the then");
+          <!--console.log("In the then");-->
           console.log(bbox_objects);
+          // Plot BBOX
           for (let i = 0; i < bbox_objects.length; i++) {
               console.log(bbox_objects[i])
               var bbox_x = bbox_objects[i]['bbox'][0]
               var bbox_y = bbox_objects[i]['bbox'][1]
               var bbox_width = bbox_objects[i]['bbox'][2]
               var bbox_height = bbox_objects[i]['bbox'][3]
+
+              const plotWidth = 2;
+              const plotColor = 'red';
+              // plot bbox rect
+              ctx.lineWidth = plotWidth;
+              ctx.strokeStyle = plotColor;
               ctx.strokeRect(bbox_x, bbox_y, bbox_width, bbox_height);
+              // plot class and name
+              ctx.fillStyle = plotColor;
+              ctx.font = "20px Arial";
+              var text = bbox_objects[i]['class'] + " | " + bbox_objects[i]['score'].toFixed(3);
+              console.log(text);
+              ctx.fillText(text, bbox_x+5, bbox_y);
+
           }
       });
   }
