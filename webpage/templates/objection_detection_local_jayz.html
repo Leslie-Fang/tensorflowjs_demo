@@ -4,7 +4,9 @@
 <!--<script src="static/coco-ssd"> </script>-->
 
 <!-- Replace this with your image. Make sure CORS settings allow reading the image! -->
-<img id="img" src="static/self_trained_jayz/train_001.jpg"/>
+<!--<img id="img" src="static/train_004.jpg"/>-->
+<!--<canvas id="canvas" width="640" height="480"></canvas>-->
+<canvas id="myCanvas"></canvas>
 <script src="static/classes_jayz.js"> </script>
 
 <!-- Place your code in the script tag below. You can also use an external .js file -->
@@ -12,16 +14,14 @@
   // Notice there is no 'import' statement. 'cocoSsd' and 'tf' is
   // available on the index-page because of the script tag above.
 
-  const img = document.getElementById('img');
-
   MODEL_PATH = 'static/self_trained_jayz/model.json'
   let ssdmodel;
-  const ssdDemo = async () => {
+  const ssdDemo = async (imgElement) => {
       // Load the model
       const ssdmodel = await tf.loadGraphModel(MODEL_PATH);
 
       // Preprocess the image
-      const imgElement = document.getElementById('img');
+      <!--const imgElement = document.getElementById('img');-->
       const input = tf.browser.fromPixels(imgElement).toFloat();
       input2 = await input.expandDims(axis=0);
 
@@ -34,14 +34,15 @@
       // 2. box location with shape of [1, 3(boxes_number), 1, 4]
       // where 1 is the batchsize, 3 is the number of box detectors, 90 is the number of classes.
       // and 4 is the four coordinates of the box.
-      result = await ssdmodel.executeAsync(input2); //
+      outputs_node = ['num_detections','detection_boxes','detection_scores','detection_classes']
+      result = await ssdmodel.executeAsync(input2, outputs_node); //
 
       console.log(result);
 
-      num_detections = result[1].dataSync()
-      detected_boxes = result[3].dataSync()
-      detected_scores = result[4].dataSync()
-      detected_classes = result[5].dataSync()
+      num_detections = result[0].dataSync()
+      detected_boxes = result[1].dataSync()
+      detected_scores = result[2].dataSync()
+      detected_classes = result[3].dataSync()
       console.log(num_detections);
       console.log(detected_boxes);
       console.log(detected_scores);
@@ -70,14 +71,33 @@
         });
       }
       console.log('Predictions: ', objects);
-      //return objects;
-  }
-  //waiting the image to be loaded
-  while(!document.getElementById('img').complete)
-  {
-    console.log("Waiting");
+
+      return objects;
   }
 
-  ssdDemo();
+  var c = document.getElementById("myCanvas");
+  var ctx = c.getContext("2d");
+  var img = new Image();
+  img.src = "static/train_005.jpg";
+  img.onload = function () {
+      ctx.canvas.width = img.width;
+      ctx.canvas.height = img.height;
+      ctx.drawImage(img, 0, 0,  ctx.canvas.width, ctx.canvas.height);
+      <!--bbox_objects =-->
+      ssdDemo(img).then((bbox_objects)=> {
+          console.log("In the then");
+          console.log(bbox_objects);
+          for (let i = 0; i < bbox_objects.length; i++) {
+              console.log(bbox_objects[i])
+              var bbox_x = bbox_objects[i]['bbox'][0]
+              var bbox_y = bbox_objects[i]['bbox'][1]
+              var bbox_width = bbox_objects[i]['bbox'][2]
+              var bbox_height = bbox_objects[i]['bbox'][3]
+              ctx.strokeRect(bbox_x, bbox_y, bbox_width, bbox_height);
+          }
+      });
+  }
+
+  //ssdDemo();
 
 </script>
